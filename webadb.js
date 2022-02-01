@@ -31,7 +31,7 @@
 		if (transport == "WebUSB")
 			return Adb.WebUSB.Transport.open();
 
-		throw new Error("Unsupported transport: " + transport);
+		throw new Error("不支持的传输模式: " + transport);
 	};
 
 	Adb.WebUSB = {};
@@ -138,12 +138,12 @@
 				}))
 				.then(response => {
 					if (response.cmd != "CNXN")
-						throw new Error("Failed to connect with '" + banner + "'");
+						throw new Error("无法连接到 '" + banner + "'");
 					console.log('version', response.arg0);
 					if (response.arg0 != VERSION && response.arg0 != VERSION_NO_CHECKSUM)
-						throw new Error("Version mismatch: " + response.arg0 + " (expected: " + VERSION + " or " + VERSION_NO_CHECKSUM + ")");
+						throw new Error("版本不匹配: " + response.arg0 + " (expected: " + VERSION + " or " + VERSION_NO_CHECKSUM + ")");
 					if (Adb.Opt.debug)
-						console.log("Connected with '" + banner + "', max_payload: " + response.arg1);
+						console.log("已连接到 '" + banner + "', max_payload: " + response.arg1);
 					adb.max_payload = response.arg1;
 					if (response.arg0 == VERSION_NO_CHECKSUM)
 						Adb.Opt.use_checksum = false;
@@ -163,7 +163,7 @@
 					.then(response => {
 						let cmd = decode_cmd(response.getUint32(0, true));
 						if (cmd == "FAIL")
-							throw new Error("Unable to open Fastboot");
+							throw new Error("无法打开 Fastboot");
 
 						fastboot.get_cmd = r => decode_cmd(r.getUint32(0, true));
 						fastboot.get_payload = r => r.buffer.slice(4);
@@ -250,7 +250,7 @@
 
 	Adb.Message = function(cmd, arg0, arg1, data = null) {
 		if (cmd.length != 4)
-			throw new Error("Invalid command: '" + cmd + "'");
+			throw new Error("命令有误: '" + cmd + "'");
 
 		this.cmd = cmd;
 		this.arg0 = arg0;
@@ -339,7 +339,7 @@
 				return device.receive(len)
 					.then(data => {
 						if (Adb.Opt.use_checksum && Adb.Message.checksum(data) != check)
-							throw new Error("checksum mismatch");
+							throw new Error("校验和不匹配");
 
 						let message = new Adb.Message(cmd, arg0, arg1, data);
 						if (Adb.Opt.debug)
@@ -360,7 +360,7 @@
 
 	Adb.SyncFrame = function(cmd, length = 0, data = null) {
 		if (cmd.length != 4)
-			throw new Error("Invalid command: '" + cmd + "'");
+			throw new Error("命令有误: '" + cmd + "'");
 
 		this.cmd = cmd;
 		this.length = length;
@@ -538,13 +538,13 @@
 
 	Adb.Stream.prototype.abort = function() {
 		if (Adb.Opt.debug)
-			console.log("aborting...");
+			console.log("正在停止...");
 
 		let self = this;
 		return new Promise(function(resolve, reject) {
 			self.cancel = function() {
 				if (Adb.Opt.debug)
-					console.log("aborted");
+					console.log("已中断");
 				self.cancel = null;
 				resolve();
 			};
